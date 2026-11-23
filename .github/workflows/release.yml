@@ -18,6 +18,11 @@ on:
   schedule:
     - cron: "47 * * * *"
   workflow_dispatch:
+    inputs:
+      macos:
+        description: "Test on GitHub's macOS too (off only while GitHub has no Mac, and the macOS checks were run on a Mac elsewhere)"
+        type: boolean
+        default: true
   push:
     branches: [main]
   pull_request:
@@ -74,7 +79,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, windows-2025]
+        # (macOS left out only when a run by hand says so: GitHub had no Mac, and it was checked on one elsewhere)
+        runner: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.macos == false && '["ubuntu-24.04", "ubuntu-24.04-arm", "windows-2025"]' || '["ubuntu-24.04", "ubuntu-24.04-arm", "macos-15", "windows-2025"]') }}
     runs-on: ${{ matrix.runner }}
     defaults:
       run:
@@ -121,14 +127,17 @@ jobs:
         env:
           VERSION: ${{ needs.follow.outputs.version }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MACOS: ${{ github.event_name != 'workflow_dispatch' || inputs.macos }}
         run: |
+          mac="macOS (Apple silicon)"
+          [ "$MACOS" = false ] && mac="macOS (Apple silicon, on a Mac outside GitHub, which had none free)"
           sed -i "s/^__version__ = \".*\"$/__version__ = \"$VERSION\"/" marqius_wkhtmltopdf/__init__.py
           grep -qx "__version__ = \"$VERSION\"" marqius_wkhtmltopdf/__init__.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet -- marqius_wkhtmltopdf/__init__.py; then
             git add marqius_wkhtmltopdf/__init__.py
-            git commit -q -m "marqius-wkhtmltopdf $VERSION" -m "Installed with pip and run through python-pdfkit, django-wkhtmltopdf and imgkit on Linux (x86-64, ARM64), macOS (Apple silicon) and Windows, then published: $RUN_URL"
+            git commit -q -m "marqius-wkhtmltopdf $VERSION" -m "Installed with pip and run through python-pdfkit, django-wkhtmltopdf and imgkit on Linux (x86-64, ARM64), $mac and Windows, then published: $RUN_URL"
           fi
           if [ -z "$(git ls-remote --tags origin "refs/tags/$VERSION")" ]; then
             git tag -a "$VERSION" -m "marqius-wkhtmltopdf $VERSION" -m "Tested and published: $RUN_URL"
@@ -141,7 +150,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, windows-2025]
+        # (macOS left out only when a run by hand says so: GitHub had no Mac, and it was checked on one elsewhere)
+        runner: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.macos == false && '["ubuntu-24.04", "ubuntu-24.04-arm", "windows-2025"]' || '["ubuntu-24.04", "ubuntu-24.04-arm", "macos-15", "windows-2025"]') }}
     runs-on: ${{ matrix.runner }}
     defaults:
       run:
