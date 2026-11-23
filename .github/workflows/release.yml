@@ -73,10 +73,17 @@ jobs:
           program=$(echo "$VERSION" | cut -d. -f1-3)
           python3 .github/release.py fetch "$program" "$RUNNER_TEMP/builds"
           python3 build.py "$VERSION" "$RUNNER_TEMP/builds" dist
+          # the same wheels as a newer version, never published: what `marqius-wkhtmltopdf update` must find
+          python3 build.py "$VERSION.99" "$RUNNER_TEMP/builds" next
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: wheels
           path: dist/*.whl
+          retention-days: 7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-next
+          path: next/*.whl
           retention-days: 7
 
   test:
@@ -98,16 +105,42 @@ jobs:
         with:
           name: wheels
           path: dist
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: wheels-next
+          path: next
+      - if: runner.os == 'Linux'
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: |
+            3.8
+            3.14
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.13"
       - name: Install the wheel, and make files with each library
+        env:
+          EXPECT_VERSION: ${{ needs.follow.outputs.version }}
         run: |
           tmp=$RUNNER_TEMP
           if command -v cygpath >/dev/null; then tmp=$(cygpath -m "$tmp"); fi
           python -m pip install -q --disable-pip-version-check twine
           python -m twine check --strict dist/*.whl
           PIP_FIND_LINKS="$GITHUB_WORKSPACE/dist" PYTHON=python tests/examples.sh "$tmp/w"
+      - name: marqius-wkhtmltopdf update finds a newer version and installs it
+        env:
+          VERSION: ${{ needs.follow.outputs.version }}
+        run: |
+          tmp=$RUNNER_TEMP
+          if command -v cygpath >/dev/null; then tmp=$(cygpath -m "$tmp"); fi
+          PIP_FIND_LINKS="$GITHUB_WORKSPACE/dist $GITHUB_WORKSPACE/next" UPDATE_FROM="$VERSION" UPDATE_TO="$VERSION.99" \
+            PYTHON=python tests/examples.sh "$tmp/u" update
+      - name: The oldest and newest Python the package names, 3.8 and 3.14
+        if: runner.os == 'Linux'
+        run: |
+          for v in 3.8 3.14; do
+            PIP_FIND_LINKS="$GITHUB_WORKSPACE/dist" PYTHON=python$v tests/examples.sh "$RUNNER_TEMP/py$v" pdfkit django-wkhtmltopdf imgkit typed
+          done
 
   publish:
     needs: [follow, test]

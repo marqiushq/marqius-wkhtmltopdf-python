@@ -15,29 +15,29 @@ import shutil
 import sys
 import tempfile
 
-__version__ = "0.12.13"
+__version__ = "0.12.13.1"
 __all__ = ["path", "image_path", "program", "__version__"]
 
 _BIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
 _WINDOWS = sys.platform == "win32"
 
 
-def path():
+def path() -> str:
     """The installed program's path, as wkhtmltopdf: give it where a library asks for wkhtmltopdf."""
     return _named("wkhtmltopdf")
 
 
-def image_path():
+def image_path() -> str:
     """Its path as wkhtmltoimage, for pictures (imgkit, for instance)."""
     return _named("wkhtmltoimage")
 
 
-def program():
+def program() -> str:
     """The program under its own name, marqius-wkhtmltopdf: help, licence, compare and install."""
     return _runnable(os.path.join(_BIN, "marqius-wkhtmltopdf.exe" if _WINDOWS else "marqius-wkhtmltopdf"))
 
 
-def _runnable(file):
+def _runnable(file: str) -> str:
     # an installer that dropped the wheel's file modes: give them back where the folder allows
     if not _WINDOWS and os.path.isfile(file) and not os.access(file, os.X_OK):
         try:
@@ -47,7 +47,7 @@ def _runnable(file):
     return file
 
 
-def _named(name):
+def _named(name: str) -> str:
     """The path that starts the program as `name`: a few lines of sh in the package; on Windows, a
     hard link beside the program (a copy where links cannot be made)."""
     if not _WINDOWS:

@@ -41,8 +41,31 @@ case $self in */*) here=${{self%/*}} ;; *) here=. ;; esac
 exec "$here/marqius-wkhtmltopdf" {name} "$@"
 """
 
-SUMMARY = ("marqius-wkhtmltopdf, the maintained drop-in replacement for wkhtmltopdf, for python-pdfkit, "
-           "django-wkhtmltopdf and imgkit (commercial, 30-day trial)")
+SUMMARY = ("The maintained drop-in replacement for wkhtmltopdf, for python-pdfkit, django-wkhtmltopdf and imgkit. "
+           "Prints Arabic, Hebrew, Hindi, Thai, Chinese, Japanese and Korean. "
+           "Commercial, 30-day trial, free Community licence available.")
+KEYWORDS = ["wkhtmltopdf", "wkhtmltoimage", "pdf", "html-to-pdf", "html2pdf", "pdf-generation", "pdfkit",
+            "python-pdfkit", "django-wkhtmltopdf", "django", "flask", "fastapi", "imgkit", "invoice", "rtl",
+            "arabic", "hebrew", "hindi", "thai", "chinese", "japanese", "korean", "cjk", "unicode"]
+CLASSIFIERS = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Flask",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+] + [f"Programming Language :: Python :: 3.{minor}" for minor in range(8, 15)] + [
+    "Topic :: Office/Business",
+    "Topic :: Printing",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Typing :: Typed",
+]
 
 
 def metadata(version):
@@ -57,17 +80,11 @@ License-File: LICENSE.md
 Project-URL: Homepage, https://marqius.com/wkhtmltopdf/
 Project-URL: Documentation, https://marqius.com/download/developer-manual.pdf
 Project-URL: Source, https://github.com/marqiushq/marqius-wkhtmltopdf-python
+Project-URL: Issues, https://github.com/marqiushq/marqius-wkhtmltopdf-python/issues
+Project-URL: Changelog, https://github.com/marqiushq/marqius-wkhtmltopdf/releases
 Project-URL: Licences, https://marqius.com/licence/marqius-wkhtmltopdf
-Keywords: wkhtmltopdf,wkhtmltoimage,pdf,html-to-pdf,pdfkit,django-wkhtmltopdf,imgkit
-Classifier: Development Status :: 5 - Production/Stable
-Classifier: Intended Audience :: Developers
-Classifier: Operating System :: MacOS
-Classifier: Operating System :: Microsoft :: Windows
-Classifier: Operating System :: POSIX :: Linux
-Classifier: Programming Language :: Python :: 3
-Classifier: Topic :: Printing
-Classifier: Topic :: Text Processing :: Markup :: HTML
-Requires-Python: >=3.8
+Keywords: {",".join(KEYWORDS)}
+{"".join(f"Classifier: {c}{chr(10)}" for c in CLASSIFIERS)}Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 
 """
