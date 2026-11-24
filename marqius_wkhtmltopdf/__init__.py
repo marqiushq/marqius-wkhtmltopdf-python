@@ -15,7 +15,7 @@ import shutil
 import sys
 import tempfile
 
-__version__ = "0.12.13.1"
+__version__ = "0.12.14"
 __all__ = ["path", "image_path", "program", "__version__"]
 
 _BIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
